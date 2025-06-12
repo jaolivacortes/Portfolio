@@ -1,0 +1,374 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import "@assets/scss/app.scss";
+
+interface Comment {
+  id: number;
+  content: string;
+  created_at: string;
+  user_name: string;
+}
+
+// Obtener la página actual de la URL
+const currentPage = Number(Astro.url.searchParams.get('page')) || 1;
+const categoryId = 1; // ID para la categoría de Opiniones
+
+// Función para obtener los comentarios
+async function getComments() {
+  try {
+    const response = await fetch(`http://localhost:8000/api/forum/comments?category_id=${categoryId}&page=${currentPage}`, {
+      credentials: 'include',
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
+   
+    if (!response.ok) throw new Error('Error al cargar los comentarios');
+   
+    const data = await response.json();
+    return data.data;
+  } catch (error) {
+    console.error('Error:', error);
+    return { data: [], meta: { current_page: 1, last_page: 1 } };
+  }
+}
+
+const commentsData = await getComments();
+const comments: Comment[] = commentsData.data || [];
+const totalPages = commentsData.meta?.last_page || 1;
+---
+
+<Layout>
+  <div class="forum-section forum-section--opinions">
+    <div class="forum-section__header">
+      <a href="/forum" class="forum-section__back-link">← Volver al menú del foro</a>
+      <h1 class="forum-section__title">Opiniones</h1>
+    </div>
+
+    <div class="forum-section__form">
+      <h2 class="forum-section__form-title">Nueva Opinión</h2>
+      <form id="commentForm">
+        <div class="forum-section__textarea-wrapper">
+          <textarea name="commentContent"
+            class="forum-section__textarea"
+            placeholder="Escribe tu opinión aquí..."
+            required
+            maxlength="500"
+            ></textarea>
+          <div class="forum-section__char-count">0/500 caracteres</div>
+        </div>
+        <button type="submit" class="forum-section__submit-btn">Publicar</button>
+      </form>
+    </div>
+
+    <div id="commentsList" class="forum-section__comments">
+      {comments.map((comment) => (
+        <div class="forum-section__comment">
+          <div class="forum-section__comment-header">
+            <span class="forum-section__username">{comment.user_name}</span>
+            <div class="forum-section__comment-meta">
+              <span class="forum-section__delete-btn-container"></span>
+              <span class="forum-section__date">{new Date(comment.created_at).toLocaleDateString()}</span>
+            </div>
+          </div>
+          <p class="forum-section__content">{comment.content}</p>
+        </div>
+      ))}
+    </div>
+
+    <div class="forum-section__pagination">
+      <a href="javascript:void(0)" class="forum-section__page-link prev" data-page={currentPage - 1}>
+        ←
+      </a>
+      <span class="forum-section__current-page">
+        {currentPage}
+      </span>
+      <a href="javascript:void(0)" class="forum-section__page-link next" data-page={currentPage + 1}>
+        →
+      </a>
+    </div>
+  </div>
+
+  <!-- Modal de confirmación de borrado -->
+  <div id="deleteModal" class="modal">
+    <div class="modal__content">
+      <div class="modal__header">
+        <h5 class="modal__title">Confirmar Borrado</h5>
+        <button type="button" id="closeDeleteModal" class="modal__close">&times;</button>
+      </div>
+      <div class="modal__body">
+        ¿Estás seguro de que deseas borrar este comentario?
+      </div>
+      <div class="modal__footer">
+        <button type="button" id="cancelDelete" class="modal__button modal__button--secondary">Cancelar</button>
+        <button type="button" id="confirmDelete" class="modal__button modal__button--danger">Sí, borrar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    interface Comment {
+      id: number;
+      content: string;
+      created_at: string;
+      user_name: string;
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    let currentPage = Number(urlParams.get('page')) || 1;
+    let totalPages = 1;
+    let comments: Comment[] = []; // Declarar comments en el scope del script
+
+    async function loadComments(page = 1) {
+      try {
+        const response = await fetch(`http://localhost:8000/api/forum/comments?category_id=1&page=${page}`, {
+          credentials: 'include',
+          headers: {
+            Accept: 'application/json'
+          }
+        });
+
+        if (!response.ok) throw new Error('Error al cargar los comentarios');
+
+        const responseData = await response.json();
+
+        comments = responseData.data.data || [];
+        totalPages = responseData.data.last_page || 1;
+        currentPage = responseData.data.current_page || 1;
+
+        const commentsList = document.getElementById('commentsList');
+        if (commentsList) {
+          commentsList.innerHTML = comments.length === 0 
+            ? '<p>No hay comentarios en esta página</p>'
+            : comments.map((comment: Comment) => `
+                <div class="forum-section__comment">
+                  <div class="forum-section__comment-header">
+                    <span class="forum-section__username">${comment.user_name}</span>
+                    <div class="forum-section__comment-meta">
+                      <span class="forum-section__delete-btn-container"></span>
+                      <span class="forum-section__date">${new Date(comment.created_at).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                  <p class="forum-section__content">${comment.content}</p>
+                </div>
+              `).join('');
+        }
+
+        const currentPageSpan = document.querySelector('.forum-section__current-page');
+        if (currentPageSpan) {
+          currentPageSpan.textContent = page.toString();
+        }
+
+        window.history.pushState({}, '', `/forum/seccion1?page=${page}`);
+        
+        renderDeleteButtons();
+
+        // Actualizar estado de los botones
+        const prevButton = document.querySelector(".forum-section__page-link.prev") as HTMLElement;
+        const nextButton = document.querySelector(".forum-section__page-link.next") as HTMLElement;
+
+        if (prevButton) {
+          prevButton.style.opacity = currentPage > 1 ? "1" : "0.5";
+          prevButton.style.pointerEvents = currentPage > 1 ? "auto" : "none";
+        }
+
+        if (nextButton) {
+          nextButton.style.opacity = currentPage < totalPages ? "1" : "0.5";
+          nextButton.style.pointerEvents = currentPage < totalPages ? "auto" : "none";
+        }
+
+      } catch (error) {
+        console.error('Error:', error);
+        const commentsList = document.getElementById('commentsList');
+        if (commentsList) {
+          commentsList.innerHTML = '<p>Error al cargar los comentarios</p>';
+        }
+      }
+    }
+
+    function goToPrevPage() {
+      if (currentPage > 1) {
+        currentPage--;
+        loadComments(currentPage);
+      }
+    }
+
+    function goToNextPage() {
+      if (currentPage < totalPages) {
+        currentPage++;
+        loadComments(currentPage);
+      }
+    }
+
+    // Event listeners para paginación
+    const prevButton = document.querySelector('.forum-section__page-link.prev');
+    const nextButton = document.querySelector('.forum-section__page-link.next');
+
+    if (prevButton) {
+      prevButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        goToPrevPage();
+      });
+    }
+
+    if (nextButton) {
+      nextButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        goToNextPage();
+      });
+    }
+
+    // Cargar comentarios iniciales
+    loadComments(currentPage);
+
+    // Manejo del formulario
+    const commentForm = document.getElementById('commentForm');
+    const textarea = document.querySelector('textarea[name="commentContent"]');
+    const charCounter = document.querySelector('.forum-section__char-count');
+
+    if (textarea && charCounter) {
+      textarea.addEventListener('input', (e) => {
+        const target = e.target as HTMLTextAreaElement;
+        const remaining = target.value.length;
+        charCounter.textContent = `${remaining}/500 caracteres`;
+      });
+    }
+
+    if (commentForm) {
+      commentForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const userSession = localStorage.getItem('user_session');
+        if (!userSession) {
+          alert('Debes iniciar sesión para publicar un comentario');
+          return;
+        }
+
+        const csrfToken = await getCsrfToken();
+        if (!csrfToken) {
+          alert('Error al obtener el token de seguridad. Por favor, recarga la página.');
+          return;
+        }
+
+        const form = e.target as HTMLFormElement;
+        const content = form.elements.namedItem('commentContent') as HTMLTextAreaElement;
+
+        try {
+          const response = await fetch('http://localhost:8000/api/forum/comments', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'X-CSRF-TOKEN': csrfToken,
+              'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+              content: content.value,
+              category_id: 1
+            })
+          });
+
+          if (!response.ok) throw new Error('Error al publicar el comentario');
+
+          form.reset();
+          loadComments(1);
+        } catch (error) {
+          console.error('Error:', error);
+          alert('Error al publicar el comentario');
+        }
+      });
+    }
+
+    async function getCsrfToken() {
+      try {
+        const response = await fetch("http://localhost:8000/api/csrf-token", {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) throw new Error("Error al obtener el token CSRF");
+        const data = await response.json();
+        return data.csrf_token;
+      } catch (error) {
+        console.error("Error al obtener el token CSRF:", error);
+        return null;
+      }
+    }
+
+    // Añadir botón de borrar solo para admins
+    function renderDeleteButtons() {
+      const userSession = localStorage.getItem('user_session');
+      let isAdmin = false;
+      
+      if (userSession) {
+        try {
+          const sessionData = JSON.parse(userSession);
+          isAdmin = sessionData.user && sessionData.user.role === 'admin';
+        } catch (error) {
+          console.error('Error parsing user session:', error);
+        }
+      }
+      
+      if (!isAdmin) return;
+
+      document.querySelectorAll('.forum-section__comment').forEach((el, idx) => {
+        const comment = comments[idx];
+        if (!comment) return;
+
+        const deleteContainer = el.querySelector('.forum-section__delete-btn-container');
+        if (!deleteContainer) return;
+
+        deleteContainer.innerHTML = '';
+        
+        const btn = document.createElement('button');
+        btn.innerHTML = '<span class="forum-section__delete-btn-text">Eliminar comentario</span>🗑️';
+        btn.className = 'forum-section__delete-btn';
+        
+        btn.onclick = () => {
+          const deleteModal = document.getElementById('deleteModal');
+          const closeDeleteModal = document.getElementById('closeDeleteModal');
+          const cancelDelete = document.getElementById('cancelDelete');
+          const confirmDelete = document.getElementById('confirmDelete');
+          
+          if (deleteModal && closeDeleteModal && cancelDelete && confirmDelete) {
+            deleteModal.style.display = 'flex';
+            
+            confirmDelete.onclick = async () => {
+              const csrfToken = await getCsrfToken();
+              const res = await fetch(`http://localhost:8000/api/admin/forum/comments/${comment.id}`, {
+                method: 'DELETE',
+                headers: {
+                  'X-CSRF-TOKEN': csrfToken,
+                  'Accept': 'application/json',
+                  'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'include',
+              });
+              if (res.ok) {
+                deleteModal.style.display = 'none';
+                loadComments(currentPage);
+              } else {
+                alert('Error al borrar el comentario');
+              }
+            };
+            
+            closeDeleteModal.onclick = () => {
+              deleteModal.style.display = 'none';
+            };
+            
+            cancelDelete.onclick = () => {
+              deleteModal.style.display = 'none';
+            };
+          }
+        };
+        
+        deleteContainer.appendChild(btn);
+      });
+    }
+  </script>
+</Layout>

@@ -1,0 +1,227 @@
+---
+import Layout from "../layouts/Layout.astro";
+import "@assets/scss/app.scss";
+import "../styles/global.css";
+import { api } from "../services/api";
+
+let homeData = null;
+let error = null;
+
+try {
+  console.log("Iniciando petición de datos...");
+  homeData = await api.getHomeData();
+  console.log("Datos recibidos en el componente:", homeData);
+} catch (error: unknown) {
+  console.error("Error en el componente:", error);
+  if (error instanceof Error) {
+    error = error.message;
+  } else {
+    error = "An unknown error occurred";
+  }
+}
+---
+
+<Layout>
+  <div class="home">
+    <!-- Sección de información del juego (visible siempre) -->
+    <div class="home__game-info">
+      <h2 class="home__title">Bienvenido a Clicker Empire</h2>
+      <div class="home__info-card">
+        <h3 class="home__info-title">¿Cómo jugar?</h3>
+        <ul class="home__info-list">
+          <li>Haz clic en la oliva para ganar olivas</li>
+          <li>Usa tus olivas para comprar mejoras y propiedades</li>
+          <li>Las propiedades generan olivas automáticamente cada segundo</li>
+          <li>El juego guarda automáticamente cada 60 segundos</li>
+          <li>Puedes guardar manualmente usando el botón de guardar</li>
+          <li>¡Compite con otros jugadores en el ranking!</li>
+          <li>¡Desbloquea logros para mejorar tu progreso!</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Contenido para usuarios no autenticados -->
+    <div id="guestContent" class="home__guest-content">
+      <div class="home__auth-card">
+        <h2 class="home__title">¡Únete a Clicker Empire!</h2>
+        <p class="home__auth-text">Inicia sesión o regístrate para comenzar tu aventura</p>
+        <div class="home__auth-buttons">
+          <a href="/auth/login" class="home__auth-button">Iniciar sesión</a>
+          <a href="/auth/register" class="home__auth-button">Registrarse</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contenido para usuarios autenticados -->
+    <div id="userContent" class="home__user-content">
+      <!-- Top 3 del ranking -->
+      <div class="home__ranking-section">
+        <h2 class="home__title">Top 3 Jugadores</h2>
+        <div class="home__ranking-list" id="topRanking">
+          <!-- Se llenará dinámicamente -->
+        </div>
+      </div>
+
+      <!-- Últimos logros -->
+      <div class="home__achievements-section">
+        <h2 class="home__title">Últimos Logros</h2>
+        <div class="home__achievements-list" id="recentAchievements">
+          <!-- Se llenará dinámicamente -->
+        </div>
+      </div>
+
+      <!-- Olivas actuales -->
+      <div class="home__olives-section">
+        <h2 class="home__title">Tus Olivas</h2>
+        <div class="home__olives-info">
+          <p class="home__olives-count">Olivas actuales: <span id="currentOlives">0</span></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  // Función para formatear números
+  function formatNumber(olives: number) {
+    if (olives < 1_000_000) {
+      return olives.toLocaleString("en")
+    }
+
+    const units = ["", "million", "billion", "trillion", "quadrillion", "quintillion",
+      "sextillion", "septillion", "octillion", "nonillion", "decillion"]
+    let index = -1
+
+    while (olives >= 1_000) {
+      olives /= 1_000
+      index++
+
+      if (index >= units.length) {
+        return "∞"
+      }
+    }
+
+    const formatted = parseFloat(olives.toFixed(3)).toString()
+    return `${formatted} ${units[index]}`
+  }
+
+  // Función para obtener el top 3 del ranking
+  async function fetchTopRanking() {
+    try {
+      const response = await fetch('http://localhost:8000/api/ranking', {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al obtener el ranking');
+      }
+
+      const data = await response.json();
+      const top3 = data.players.slice(0, 3);
+      
+      const rankingList = document.getElementById('topRanking');
+      if (rankingList) {
+        rankingList.innerHTML = top3.map((player: any, index: number) => `
+          <div class="home__ranking-item">
+            <span class="home__ranking-position">#${index + 1}</span>
+            <span class="home__ranking-name">${player.name}</span>
+            <span class="home__ranking-olives">${formatNumber(player.olivesTotal)} olivas</span>
+          </div>
+        `).join('');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  }
+
+  // Función para obtener los últimos logros
+  function getRecentAchievements() {
+    try {
+      const gameDataStr = localStorage.getItem('game');
+      const userSessionStr = localStorage.getItem('user_session');
+
+      if (!gameDataStr || !userSessionStr) {
+        throw new Error('No se encontraron datos del juego');
+      }
+
+      const gameData = JSON.parse(gameDataStr);
+      const userSession = JSON.parse(userSessionStr);
+
+      if (!gameData?.achievements || !userSession?.user?.player) {
+        throw new Error('Datos del juego incompletos');
+      }
+
+      const achievements = gameData.achievements;
+      const obtainedAchievements = JSON.parse(userSession.user.player.achievements_obtained || '{}');
+
+      // Filtrar solo los logros obtenidos y ordenarlos por ID (asumiendo que IDs más altos son más recientes)
+      const recentAchievements = achievements
+        .filter((achievement: any) => obtainedAchievements[achievement.id])
+        .sort((a: any, b: any) => b.id - a.id)
+        .slice(0, 3);
+
+      const achievementsList = document.getElementById('recentAchievements');
+      if (achievementsList) {
+        achievementsList.innerHTML = recentAchievements.map((achievement: any) => `
+          <div class="home__achievement-item">
+            <span class="home__achievement-icon">🏆</span>
+            <div class="home__achievement-info">
+              <h3 class="home__achievement-name">${achievement.name}</h3>
+              <p class="home__achievement-description">${achievement.description}</p>
+            </div>
+          </div>
+        `).join('');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  }
+
+  // Función para actualizar las olivas actuales
+  function updateCurrentOlives() {
+    const userSession = localStorage.getItem('user_session');
+    if (!userSession) return;
+
+    const session = JSON.parse(userSession);
+    const player = session.user.player;
+
+    const currentOlivesElement = document.getElementById('currentOlives');
+
+    if (currentOlivesElement) {
+      currentOlivesElement.textContent = formatNumber(player.olives_count || 0);
+    }
+  }
+
+  // Función para actualizar la visibilidad del contenido
+  function updateContentVisibility() {
+    const userSession = localStorage.getItem('user_session');
+    const guestContent = document.getElementById('guestContent');
+    const userContent = document.getElementById('userContent');
+
+    if (userSession) {
+      guestContent?.classList.add('home__guest-content--hidden');
+      userContent?.classList.remove('home__user-content--hidden');
+      fetchTopRanking();
+      getRecentAchievements();
+      updateCurrentOlives();
+    } else {
+      guestContent?.classList.remove('home__guest-content--hidden');
+      userContent?.classList.add('home__user-content--hidden');
+    }
+  }
+
+  // Actualizar la visibilidad al cargar la página
+  if (typeof window !== 'undefined') {
+    updateContentVisibility();
+
+    // Actualizar cada minuto
+    setInterval(() => {
+      updateContentVisibility();
+    }, 60000);
+  }
+</script>

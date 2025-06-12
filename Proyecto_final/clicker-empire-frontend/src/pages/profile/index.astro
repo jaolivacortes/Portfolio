@@ -1,0 +1,559 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import "@assets/scss/app.scss";
+---
+
+
+<Layout>
+    <div class="profile">
+        <div class="profile__container">
+            <h1 class="profile__title">Perfil de Usuario</h1>
+
+
+            <div class="profile__section">
+                <div class="profile__grid">
+                    <!-- Columna izquierda con la información personal -->
+                    <div class="profile__info">
+                        <h2 class="profile__section-title">Información Personal</h2>
+                        <div class="profile__info-group">
+                            <label class="profile__label">Nombre</label>
+                            <p id="userName" class="profile__value"></p>
+                        </div>
+                        <div class="profile__info-group">
+                            <label class="profile__label">Email</label>
+                            <p id="userEmail" class="profile__value"></p>
+                        </div>
+                        <div class="profile__info-group">
+                            <label class="profile__label">Nombre de usuario</label>
+                            <p id="userUsername" class="profile__value"></p>
+                        </div>
+                        <div class="profile__info-group">
+                            <label class="profile__label">Nombre de la finca</label>
+                            <div class="profile__store-name">
+                                <span class="profile__store-prefix">La finca de </span>
+                                <input type="text" id="storeNameInput"
+                                    class="profile__input"
+                                    placeholder="Cargando..." maxlength="20">
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Columna derecha con el progreso -->
+                    <div class="profile__progress">
+                        <h2 class="profile__section-title">Progreso</h2>
+                        <div class="profile__info-group">
+                            <label class="profile__label">Olivas totales recogidas esta campaña</label>
+                            <p id="oliveCountTotal" class="profile__value"></p>
+                        </div>
+                        <div class="profile__info-group">
+                            <label class="profile__label">Olivas recogidas a mano</label>
+                            <p id="oliveCountClicked" class="profile__value"></p>
+                        </div>
+                        <div class="profile__info-group">
+                            <label class="profile__label">Propiedades compradas</label>
+                            <p id="productCount" class="profile__value"></p>
+                        </div>
+                        <div class="profile__info-group">
+                            <label class="profile__label">Mejoras compradas</label>
+                            <p id="upgradeCount" class="profile__value"></p>
+                        </div>
+                        <div class="profile__info-group">
+                            <label class="profile__label">Logros conseguidos</label>
+                            <p id="achievementCount" class="profile__value"></p>
+                        </div>
+                        <div class="profile__actions">
+                            <button type="button" class="profile__button profile__button--danger" id="resetButton">
+                                Reiniciar progreso
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="profile__section">
+                <h2 class="profile__section-title">Editar Perfil</h2>
+                <form id="editProfileForm" class="profile__form">
+                    <div class="profile__form-group">
+                        <label for="editName" class="profile__label">Nombre</label>
+                        <input type="text" id="editName" name="name"
+                            class="profile__input"
+                            placeholder="Nuevo nombre" maxlength="20">
+                    </div>
+                    <div class="profile__form-group">
+                        <label for="editEmail" class="profile__label">Email</label>
+                        <input type="email" id="editEmail" name="email"
+                            class="profile__input"
+                            placeholder="Nuevo email">
+                    </div>
+                    <div class="profile__form-group">
+                        <label for="currentPassword" class="profile__label">Contraseña Actual</label>
+                        <input type="password" id="currentPassword" name="current_password"
+                            class="profile__input"
+                            placeholder="Contraseña actual">
+                    </div>
+                    <div class="profile__form-group">
+                        <label for="newPassword" class="profile__label">Nueva Contraseña</label>
+                        <input type="password" id="newPassword" name="new_password"
+                            class="profile__input"
+                            placeholder="Nueva contraseña">
+                    </div>
+                    <div class="profile__form-group">
+                        <label for="confirmPassword" class="profile__label">Confirmar Nueva Contraseña</label>
+                        <input type="password" id="confirmPassword" name="new_password_confirmation"
+                            class="profile__input"
+                            placeholder="Confirmar nueva contraseña">
+                    </div>
+                    <div class="profile__actions">
+                        <button type="submit" class="profile__button profile__button--primary">
+                            Guardar Cambios
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Modal (oculto inicialmente) -->
+    <div id="confirmationModal" class="modal" style="display: none;">
+        <div class="modal__content">
+            <div class="modal__header">
+                <h5 class="modal__title">Confirmar Reinicio</h5>
+                <button type="button" id="closeModal" class="modal__close">&times;</button>
+            </div>
+            <div class="modal__body">
+                ¿Estás seguro de que deseas reiniciar el progreso?
+            </div>
+            <div class="modal__footer">
+                <button type="button" id="cancelModal" class="modal__button modal__button--secondary">Cancelar</button>
+                <button type="button" id="confirmReset" class="modal__button modal__button--danger">Sí, reiniciar</button>
+            </div>
+        </div>
+    </div>
+</Layout>
+
+
+<script>
+// Obtener el botón de "Reiniciar progreso"
+const resetButton = document.getElementById('resetButton');
+
+
+// Verificar que el botón realmente existe antes de añadir el evento
+if (resetButton) {
+    // Obtener el modal y los botones dentro de él
+    const confirmationModal = document.getElementById('confirmationModal');
+    const closeModal = document.getElementById('closeModal');
+    const cancelModal = document.getElementById('cancelModal');
+    const confirmReset = document.getElementById('confirmReset');
+
+
+    // Función para abrir el modal
+    resetButton.addEventListener('click', () => {
+        if (confirmationModal) {
+            confirmationModal.style.display = 'flex'; // Mostrar el modal
+        }
+    });
+
+
+    // Función para cerrar el modal
+    if (closeModal) {
+        closeModal.addEventListener('click', () => {
+            if (confirmationModal) {
+                confirmationModal.style.display = 'none'; // Ocultar el modal
+            }
+        });
+    }
+
+
+    // Función para cancelar la acción y cerrar el modal
+    if (cancelModal) {
+        cancelModal.addEventListener('click', () => {
+            if (confirmationModal) {
+                confirmationModal.style.display = 'none'; // Ocultar el modal
+            }
+        });
+    }
+
+
+    // Función para confirmar el reinicio y cerrar el modal
+    if (confirmReset) {
+        confirmReset.addEventListener('click', async () => {
+            try {
+                // Obtener el token CSRF
+                const csrfToken = await getCsrfToken();
+                
+                if (!csrfToken) {
+                    alert('Error al obtener el token de seguridad. Por favor, recarga la página.');
+                    return;
+                }
+
+
+                // Preparar los datos para reiniciar
+                const resetData = {
+                    olives_count: 0,
+                    olives_count_total: 0,
+                    olives_count_clicked: 0,
+                    products_owned: {},
+                    upgrades_owned: {},
+                    achievements_count: 0,
+                    achievements_obtained: {}
+                };
+
+
+                const response = await fetch('http://localhost:8000/api/profile/reset-progress', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify(resetData),
+                    credentials: 'include'
+                });
+
+
+                if (!response.ok) {
+                    const data = await response.json();
+                    const errorMessage = data.message || 'Error al reiniciar el progreso';
+                    alert(errorMessage);
+                    return;
+                }
+
+
+                const data = await response.json();
+                if (data.success) {
+                    alert('Progreso reiniciado correctamente');
+                    
+                    // Update localStorage with new data from backend response
+                    const userSession = localStorage.getItem('user_session');
+                    if (userSession) {
+                        const session = JSON.parse(userSession);
+                        session.user.player = {
+                            ...session.user.player,
+                            olives_count: 0,
+                            olives_count_total: 0,
+                            olives_count_clicked: 0,
+                            products_owned: '{}',
+                            upgrades_owned: '{}',
+                            achievements_count: 0,
+                            achievements_obtained: '{}'
+                        };
+                        localStorage.setItem('user_session', JSON.stringify(session));
+                    }
+
+
+                    // Recargar los datos del usuario para actualizar la UI
+                    loadUserData();
+                }
+
+
+                // Cerrar el modal
+                if (confirmationModal) {
+                    confirmationModal.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al conectar con el servidor');
+            }
+        });
+    }
+}
+
+
+
+
+    // Función para obtener el token CSRF
+    async function getCsrfToken() {
+        try {
+            const response = await fetch('http://localhost:8000/api/csrf-token', {
+                method: 'GET',
+                credentials: 'include',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                }
+            });
+           
+            if (!response.ok) {
+                throw new Error('Error al obtener el token CSRF');
+            }
+           
+            const data = await response.json();
+            return data.csrf_token;
+        } catch (error) {
+            console.error('Error al obtener el token CSRF:', error);
+            return null;
+        }
+    }
+
+
+
+
+
+
+
+
+    // Función para obtener los datos del usuario
+    function loadUserData() {
+        const userSession = localStorage.getItem('user_session');
+        if (!userSession) {
+            window.location.href = '/auth/login';
+            return;
+        }
+
+
+        const session = JSON.parse(userSession);
+        const user = session.user;
+        const player = session.user.player;
+
+
+        const userNameElement = document.getElementById('userName');
+        const userEmailElement = document.getElementById('userEmail');
+        const userUsernameElement = document.getElementById('userUsername');
+        const storeNameInput = document.getElementById('storeNameInput') as HTMLInputElement;
+        const editNameElement = document.getElementById('editName') as HTMLInputElement;
+        const editEmailElement = document.getElementById('editEmail') as HTMLInputElement;
+
+
+        const oliveCountElement = document.getElementById('oliveCount') as HTMLInputElement;
+        const oliveCountTotalElement = document.getElementById('oliveCountTotal') as HTMLInputElement;
+        const oliveCountClickedElement = document.getElementById('oliveCountClicked') as HTMLInputElement;
+        const productCountElement = document.getElementById('productCount') as HTMLInputElement;
+        const upgradeCountElement = document.getElementById('upgradeCount') as HTMLInputElement;
+        const achievementCountElement = document.getElementById('achievementCount') as HTMLInputElement;
+
+
+        if (userNameElement && userEmailElement && userUsernameElement && storeNameInput && editNameElement && editEmailElement) {
+            userNameElement.textContent = user.name || '-';
+            userEmailElement.textContent = user.email || '-';
+            userUsernameElement.textContent = player?.user_name || '-';
+
+
+            oliveCountClickedElement.textContent = formatNumber(player?.olives_count_clicked) || '0';
+            oliveCountTotalElement.textContent = formatNumber(player?.olives_count_total) || '0';
+            if (player?.products_owned) {
+                try {
+                    // Convertir el texto a objeto
+                    const productsOwned = JSON.parse(player.products_owned);
+                    // Usar afirmación de tipo aquí para evitar el error de 'unknown'
+                    const totalProductCount = Object.values(productsOwned).reduce((total: number, product) => {
+                        if (product && typeof product === 'object' && 'count' in product) {
+                            return total + (product as { count: number }).count; // Asegurarse de que 'product' tiene 'count'
+                        }
+                        return total;
+                    }, 0);
+                    productCountElement.textContent = totalProductCount.toString();
+                } catch (error) {
+                    console.error('Error al parsear los productos: ', error);
+                    productCountElement.textContent = '0';
+                }
+            } else {
+                productCountElement.textContent = '0';
+            }
+            let upgradesOwned = player?.upgrades_owned ? JSON.parse(player.upgrades_owned) : {};
+            upgradeCountElement.textContent = Object.values(upgradesOwned).length.toString();
+            achievementCountElement.textContent = player?.achievements_count || '0';
+            
+            // Cortar el prefijo "La finca de" del store_name
+            let storeName = player?.store_name || '';
+            if (storeName.startsWith('La finca de ')) {
+                storeName = storeName.substring(12); // Cortar "La finca de " (12 caracteres)
+            }
+            storeNameInput.value = storeName;
+            storeNameInput.placeholder = storeName || 'Nombre de la finca';
+            
+            editNameElement.value = user.name || '';
+            editEmailElement.value = user.email || '';
+        }
+    }
+
+
+
+
+
+
+
+
+    // Función para cifrar la contraseña con SHA256 y Base64
+    async function hashPassword(password: string): Promise<string> {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(password);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        const base64Hash = btoa(hashHex);
+        return base64Hash;
+    }
+
+
+
+
+
+
+
+
+    // Manejar el envío del formulario
+    document.getElementById('editProfileForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+
+        const name = (document.getElementById('editName') as HTMLInputElement).value;
+        const email = (document.getElementById('editEmail') as HTMLInputElement).value;
+        const currentPassword = (document.getElementById('currentPassword') as HTMLInputElement).value;
+        const newPassword = (document.getElementById('newPassword') as HTMLInputElement).value;
+        const confirmPassword = (document.getElementById('confirmPassword') as HTMLInputElement).value;
+        const storeName = (document.getElementById('storeNameInput') as HTMLInputElement).value;
+
+
+        // Verificar longitud del nombre
+        if (name.length > 20) {
+            alert('El nombre no puede tener más de 20 caracteres');
+            return;
+        }
+
+
+        // Verificar que las contraseñas coincidan si se está cambiando la contraseña
+        if (newPassword && newPassword !== confirmPassword) {
+            alert('Las nuevas contraseñas no coinciden');
+            return;
+        }
+
+
+        try {
+            // Obtener el token CSRF
+            const csrfToken = await getCsrfToken();
+            
+            if (!csrfToken) {
+                alert('Error al obtener el token de seguridad. Por favor, recarga la página.');
+                return;
+            }
+
+
+            // Preparar los datos para enviar
+            const updateData: any = {
+                name,
+                email,
+                store_name: storeName // Enviamos solo el nombre, el backend añadirá "La finca de"
+            };
+
+
+            // Solo incluir las contraseñas si se están cambiando
+            if (currentPassword) {
+                updateData.current_password = await hashPassword(currentPassword);
+            }
+            if (newPassword) {
+                updateData.new_password = await hashPassword(newPassword);
+                updateData.new_password_confirmation = await hashPassword(confirmPassword);
+            }
+
+
+            const response = await fetch('http://localhost:8000/api/profile', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify(updateData),
+                credentials: 'include'
+            });
+
+
+            if (!response.ok) {
+                const data = await response.json();
+                const errorMessage = data.message || 'Error al actualizar el perfil';
+                if (data.errors) {
+                    const errorDetails = Object.values(data.errors).flat().join('\n');
+                    alert(`${errorMessage}\n${errorDetails}`);
+                } else {
+                    alert(errorMessage);
+                }
+                return;
+            }
+
+
+            const data = await response.json();
+            if (data.success) {
+                alert('Perfil actualizado correctamente');
+                
+                // Update localStorage with new data from backend response
+                const userSession = localStorage.getItem('user_session');
+                if (userSession) {
+                    const session = JSON.parse(userSession);
+                    session.user = {
+                        ...session.user,
+                        name: data.user.name,
+                        email: data.user.email,
+                        player: data.user.player
+                    };
+                    localStorage.setItem('user_session', JSON.stringify(session));
+                }
+
+
+                // Recargar los datos del usuario para actualizar la UI
+                loadUserData();
+
+
+                // Limpiar los campos de contraseña
+                const currentPasswordElement = document.getElementById('currentPassword') as HTMLInputElement;
+                const newPasswordElement = document.getElementById('newPassword') as HTMLInputElement;
+                const confirmPasswordElement = document.getElementById('confirmPassword') as HTMLInputElement;
+
+
+                if (currentPasswordElement && newPasswordElement && confirmPasswordElement) {
+                    currentPasswordElement.value = '';
+                    newPasswordElement.value = '';
+                    confirmPasswordElement.value = '';
+                }
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error al conectar con el servidor');
+        }
+    });
+
+
+    // Cargar los datos del usuario al cargar la página
+    if (typeof window !== 'undefined') {
+        loadUserData();
+    }
+
+
+    // Formatear olivas
+    function formatNumber(olives: number) {
+        if (olives < 1_000_000) {
+            return olives.toLocaleString("en") // Formato con separador de miles
+        }
+
+
+        const units = ["", "million", "billion", "trillion", "quadrillion", "quintillion",
+        "sextillion", "septillion", "octillion", "nonillion", "decillion"]
+        let index = -1
+
+
+        while (olives >= 1_000) {
+            olives /= 1_000
+            index++
+
+
+            if (index >= units.length) {
+                return "∞"
+            }
+        }
+
+
+        // Eliminar ceros innecesarios pero mantener hasta 3 decimales útiles
+        const formatted = parseFloat(olives.toFixed(3)).toString()
+
+
+        return `${formatted} ${units[index]}`
+    }
+</script>
+
+
+
+
+
+

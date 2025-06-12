@@ -1,0 +1,235 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import "@assets/scss/app.scss";
+---
+
+<Layout>
+  <div class="auth">
+    <div class="auth__container">
+      <div class="auth__header">
+        <h2 class="auth__title">Iniciar sesión</h2>
+      </div>
+      <form
+        class="auth__form"
+        id="loginForm"
+      >
+        <input
+          type="hidden"
+          name="remember"
+          value="true"
+        />
+        <div class="auth__input-group">
+          <div class="auth__input-wrapper">
+            <label
+              for="email"
+              class="auth__label"
+              >Email</label
+            >
+            <input
+              id="email"
+              name="email"
+              type="email"
+              required
+              class="auth__input"
+              placeholder="Email"
+              autocomplete="email"
+            />
+          </div>
+          <div class="auth__input-wrapper">
+            <label
+              for="password"
+              class="auth__label"
+              >Contraseña</label
+            >
+            <input
+              id="password"
+              name="password"
+              type="password"
+              required
+              class="auth__input"
+              placeholder="Contraseña"
+              autocomplete="current-password"
+            />
+          </div>
+        </div>
+
+        <div class="auth__button-wrapper">
+          <button
+            type="submit"
+            class="auth__button"
+          >
+            Iniciar sesión
+          </button>
+        </div>
+      </form>
+      <div class="auth__footer">
+        <p class="auth__text">
+          ¿No tienes una cuenta?
+          <a
+            href="/auth/register"
+            class="auth__link"
+          >
+            Regístrate
+          </a>
+        </p>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  // Función para cifrar la contraseña con SHA256 y Base64
+  async function hashPassword(password: string): Promise<string> {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+    const base64Hash = btoa(hashHex);
+    return base64Hash;
+  }
+
+  // Función para obtener el token CSRF
+  async function getCsrfToken() {
+    try {
+      const response = await fetch("http://localhost:8000/api/csrf-token", {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Error al obtener el token CSRF");
+      }
+
+      const data = await response.json();
+      return data.csrf_token;
+    } catch (error) {
+      console.error("Error al obtener el token CSRF:", error);
+      return null;
+    }
+  }
+
+  // Función para obtener los productos
+  async function getGame() {
+    try {
+      const response = await fetch("http://localhost:8000/api/game", {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Error ${response.status}: ${errorText}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error al obtener los productos:", error);
+      return null;
+    }
+  }
+
+  // Manejar el envío del formulario
+  const loginForm = document.getElementById("loginForm");
+  if (loginForm) {
+    loginForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const emailInput = document.getElementById("email") as HTMLInputElement;
+      const passwordInput = document.getElementById(
+        "password"
+      ) as HTMLInputElement;
+
+      if (!emailInput || !passwordInput) {
+        console.error("No se encontraron los campos del formulario");
+        return;
+      }
+
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+
+      if (!email || !password) {
+        alert("Por favor, completa todos los campos");
+        return;
+      }
+
+      try {
+        // Cifrar la contraseña
+        const hashedPassword = await hashPassword(password);
+
+        // Obtener el token CSRF
+        const csrfToken = await getCsrfToken();
+
+        if (!csrfToken) {
+          alert(
+            "Error al obtener el token de seguridad. Por favor, recarga la página."
+          );
+          return;
+        }
+
+        const response = await fetch("http://localhost:8000/api/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            "X-CSRF-TOKEN": csrfToken,
+            "X-Requested-With": "XMLHttpRequest",
+          },
+          body: JSON.stringify({
+            email,
+            password: hashedPassword,
+          }),
+          credentials: "include",
+        });
+
+        if (!response.ok) {
+          try {
+            const data = await response.json();
+            const errorMessage = data.message || "Error al iniciar sesión";
+            if (data.errors) {
+              const errorDetails = Object.values(data.errors).flat().join("\n");
+              alert(`${errorMessage}\n${errorDetails}`);
+            } else {
+              alert(errorMessage);
+            }
+          } catch (jsonError) {
+            alert("Error al iniciar sesión. Por favor, inténtalo de nuevo.");
+          }
+          return;
+        }
+
+        const data = await response.json();
+        if (data.success) {
+          // Store user and player data in localStorage
+          const userData = {
+            auth: true,
+            timestamp: new Date().getTime(),
+            user: data.user,
+          };
+          localStorage.setItem("user_session", JSON.stringify(userData));
+
+          // Obtener game y guardarlo en localStorage
+          const game = await getGame();
+          if (game) {
+            localStorage.setItem("game", JSON.stringify(game));
+            window.location.href = "/";
+          }
+        }
+      } catch (error) {
+        console.error("Error durante el inicio de sesión:", error);
+        alert("Error al iniciar sesión. Por favor, inténtalo de nuevo.");
+      }
+    });
+  }
+</script>

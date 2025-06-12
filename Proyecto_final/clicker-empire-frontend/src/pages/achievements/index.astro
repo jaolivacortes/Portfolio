@@ -1,0 +1,94 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import "@assets/scss/app.scss";
+---
+
+
+<Layout>
+    <div class="achievements">
+        <h2 class="achievements__title">Logros</h2>
+
+
+        <div class="achievements__grid">
+            <!-- Los logros se cargarán dinámicamente aquí -->
+        </div>
+    </div>
+</Layout>
+
+
+<script>
+    // Función para obtener los logros del localStorage
+    function getAchievements() {
+        try {
+            const gameDataStr = localStorage.getItem('game');
+            const userSessionStr = localStorage.getItem('user_session');
+
+
+            if (!gameDataStr || !userSessionStr) {
+                throw new Error('No se encontraron datos del juego');
+            }
+
+
+            const gameData = JSON.parse(gameDataStr);
+            const userSession = JSON.parse(userSessionStr);
+
+
+            if (!gameData?.achievements || !userSession?.user?.player) {
+                throw new Error('Datos del juego incompletos');
+            }
+
+
+            const achievements = gameData.achievements;
+            const obtainedAchievements = JSON.parse(userSession.user.player.achievements_obtained || '{}');
+
+
+            return achievements.map((achievement: { id: string | number; name: any; description: any; }) => ({
+                id: achievement.id,
+                name: achievement.name,
+                description: achievement.description,
+                obtained: obtainedAchievements[achievement.id] || false
+            }));
+        } catch (error) {
+            console.error('Error:', error);
+            return [];
+        }
+    }
+
+
+    // Función para renderizar los logros
+    function renderAchievements(achievements: any[]) {
+        const container = document.querySelector('.achievements__grid');
+        if (!container) return;
+
+
+        container.innerHTML = achievements.map((achievement: { obtained: any; id: any; name: any; description: any; }) => `
+            <div class="achievements__item">
+                <div class="achievements__item-icon ${achievement.obtained ? 'achievements__item-icon--obtained' : ''}">
+                    ${achievement.obtained ? `
+                        <div class="achievements__item-trophy">🏆</div>
+                    ` : `
+                        <div class="achievements__item-hidden">???</div>
+                    `}
+                </div>
+                ${achievement.obtained ? `
+                    <div class="achievements__item-tooltip">
+                        <p class="achievements__item-id">#${achievement.id}</p>
+                        <p class="achievements__item-name">${achievement.name}</p>
+                        <p class="achievements__item-description">${achievement.description}</p>
+                    </div>
+                ` : ''}
+            </div>
+        `).join('');
+    }
+
+
+    // Cargar los logros al iniciar la página
+    const achievements = getAchievements();
+    renderAchievements(achievements);
+</script>
+
+
+
+
+
+

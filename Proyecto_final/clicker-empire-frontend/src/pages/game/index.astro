@@ -1,0 +1,101 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import "@assets/scss/app.scss";
+---
+
+<Layout>
+    <div id="wrapper">
+        <!-- Contenedor para las quotes -->
+        <div id="quotesContainer"></div>
+
+        <!-- Juego -->
+        <div id="game">
+            <!-- Contenedor para los números ganados por clic -->
+            <div id="clickBonusDisplayContainer"></div>
+            <!-- Section Left -->
+            <section id="sectionLeft">
+                <!-- Botón de guardado manual -->
+                <button id="manualSaveBtn" class="btn btn-success">
+                    <i class="fas fa-save"></i> Guardar
+                </button>
+                <!-- Contenedor para el mensaje de guardado -->
+                <div id="saveMessageContainer"></div>
+                <div id="empireName" class="title"></div>
+                <div id="sectionLeftInfo">
+                    <div id="olives" class="title">0 olivas</div>
+                    <div id="olivesPerSecond">por segundo: 0</div>
+                </div>
+                <button id="bigOlive"></button>
+                <img id="oilContainer" src="img/oil-1.gif" alt="">
+                <!-- Contenedor para los logros -->
+                <div id="achievementContainer"></div>
+            </section>
+            <!-- Section Middle -->
+            <section id="sectionMiddle"></section>
+            <!-- Section Right -->
+            <section id="sectionRight">
+                <div id="store">
+                    <div id="storeTitle" class="title">Tienda</div>
+                    <div id="upgradeTitle" class="title">Mejoras</div>
+                    <div id="upgrades">
+                        <!-- <div class="upgrade" id="upgradeId"></div> -->
+                    </div>
+                    <div id="productTitle" class="title">Propiedades</div>
+                    <div id="products">
+                        <!-- <div class="product" id="productId"></div> -->
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Tarjeta oculta productos -->
+    <!-- <div class="card">
+        <div class="cardBloq">
+            <div class="cardProp">
+                <div class="imagen">imagen</div>
+                <div class="info">
+                    <div class="nombre">nombre</div>
+                    <div class="cantidad">cantidad</div>
+                </div>
+            </div>
+            <div class="coste">coste</div>
+        </div>
+        <div class="descripcion">descripcion</div>
+        <div class="infos">
+            <ul class="coste__ul">
+                <li>cada %nombre produce %bonus por segundo</li>
+                <li>%cantidad produciendo %bonusTotal por segundo</li>
+                <li>producción hasta ahora: %totalProducidasActuales</li>
+            </ul>
+        </div>
+    </div> -->
+
+    <!-- Tarjeta oculta mejoras -->
+    <!-- <div class="card">
+        <div class="producto">
+            <div class="productoProp">
+                <div class="imagen">imagen</div>
+                <div class="info">
+                    <div class="nombre">nombre</div>
+                    <div class="upgradeIcon">Mejora</div>
+                </div>
+            </div>
+            <div class="coste">coste</div>
+        </div>
+        <div class="descripcion">descripcion</div>
+    </div> -->
+</Layout>
+<script>
+    // Cargar jQuery desde CDN
+    const script = document.createElement('script');
+    script.src = 'https://code.jquery.com/jquery-3.7.1.min.js';
+    script.onload = function() {
+        // Una vez que jQuery está cargado, cargar el script
+        const myScript = document.createElement('script');
+        myScript.src = '/js/miscript.js';
+        myScript.type = 'module';
+        document.body.appendChild(myScript);
+    };
+    document.body.appendChild(script);
+</script>

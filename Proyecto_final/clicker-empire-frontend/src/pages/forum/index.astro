@@ -1,0 +1,20 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import "@assets/scss/app.scss";
+---
+
+<Layout>
+    <div class="forum">
+        <h2 class="forum__title">Foro de Clicker Empire</h2>
+        <div class="forum__grid">
+            <a href="/forum/seccion1" class="forum__card forum__card--opinions">
+                <h2 class="forum__card-title">Opiniones</h2>
+                <p class="forum__card-description">Comparte tus opiniones sobre el juego</p>
+            </a>
+            <a href="/forum/seccion2" class="forum__card forum__card--issues">
+                <h2 class="forum__card-title">Incidencias</h2>
+                <p class="forum__card-description">Reporta problemas o incidencias</p>
+            </a>
+        </div>
+    </div>
+</Layout>

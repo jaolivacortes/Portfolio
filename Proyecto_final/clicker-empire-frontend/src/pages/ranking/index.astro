@@ -1,0 +1,190 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import "@assets/scss/app.scss";
+---
+
+
+<Layout>
+	<div class="ranking">
+		<h2 class="ranking__title">Ranking de Jugadores</h2>
+		
+		<div class="ranking__table-container">
+			<table class="ranking__table">
+				<thead>
+					<tr class="ranking__header">
+						<th class="ranking__header-cell" data-sort="rank">#</th>
+						<th class="ranking__header-cell" data-sort="name">Nombre</th>
+						<th class="ranking__header-cell" data-sort="olivesTotal">Olivas Totales</th>
+						<th class="ranking__header-cell" data-sort="olivesClick">Olivas por Click</th>
+						<th class="ranking__header-cell" data-sort="properties">Propiedades</th>
+						<th class="ranking__header-cell" data-sort="achievements">Logros</th>
+					</tr>
+				</thead>				
+				<tbody id="rankingTableBody" class="ranking__body">
+					<!-- Filas dinámicas con script -->
+				</tbody>
+			</table>
+		</div>
+	</div>
+</Layout>
+
+
+<script>
+	let currentSort = {
+		field: 'olivesTotal',
+		direction: 'desc'
+	};
+
+
+	// Formatear olivas
+    function formatNumber(olives: number) {
+        if (olives < 1_000_000) {
+            return olives.toLocaleString("en") // Formato con separador de miles
+        }
+
+
+        const units = ["", "million", "billion", "trillion", "quadrillion", "quintillion",
+        "sextillion", "septillion", "octillion", "nonillion", "decillion"]
+        let index = -1
+
+
+        while (olives >= 1_000) {
+            olives /= 1_000
+            index++
+
+
+            if (index >= units.length) {
+                return "∞"
+            }
+        }
+
+
+        // Eliminar ceros innecesarios pero mantener hasta 3 decimales útiles
+        const formatted = parseFloat(olives.toFixed(3)).toString()
+
+
+        return `${formatted} ${units[index]}`
+    }
+
+
+	// Función para obtener los datos del ranking
+	async function fetchRankingData() {
+		try {
+			const response = await fetch('http://localhost:8000/api/ranking', {
+				method: 'GET',
+				credentials: 'include',
+				headers: {
+					'Accept': 'application/json',
+					'Content-Type': 'application/json'
+				}
+			});
+
+
+			if (!response.ok) {
+				throw new Error('Error al obtener los datos del ranking');
+			}
+
+
+			const data = await response.json();
+			return data.players;
+		} catch (error) {
+			console.error('Error:', error);
+			return [];
+		}
+	}
+
+
+	// Función para ordenar los datos
+	function sortData(data: any, field: string, direction: string) {
+		return [...data].sort((a, b) => {
+			let valueA = a[field];
+			let valueB = b[field];
+
+
+			// Convertir a números si es necesario
+			if (field === 'olivesTotal' || field === 'olivesClick' || field === 'properties' || field === 'achievements') {
+				valueA = Number(valueA);
+				valueB = Number(valueB);
+			}
+
+
+			if (direction === 'asc') {
+				return valueA > valueB ? 1 : -1;
+			} else {
+				return valueA < valueB ? 1 : -1;
+			}
+		});
+	}
+
+
+	// Función para renderizar la tabla
+	function renderTable(data: any) {
+		const tbody = document.getElementById('rankingTableBody');
+		if (!tbody) return;
+
+
+		tbody.innerHTML = '';
+		const sortedData = sortData(data, currentSort.field, currentSort.direction);
+
+
+		// Ranking top 10
+		sortedData.slice(0, 10).forEach((player, index) => {
+			const row = document.createElement('tr');
+			if (index % 2 === 1) {
+				row.classList.add('ranking__row--alternate');
+			}
+
+
+			row.innerHTML = `
+				<td class="ranking__cell ranking__cell--rank">${index + 1}</td>
+				<td class="ranking__cell ranking__cell--name">${player.name}</td>
+				<td class="ranking__cell">${formatNumber(player.olivesTotal)}</td>
+				<td class="ranking__cell">${formatNumber(player.olivesClick)}</td>
+				<td class="ranking__cell">${player.properties}</td>
+				<td class="ranking__cell">${player.achievements}</td>
+			`;
+
+
+			tbody.appendChild(row);
+		});
+	}
+
+
+	// Función para manejar el ordenamiento
+	function handleSort(field: string) {
+		if (currentSort.field === field) {
+			currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+		} else {
+			currentSort.field = field;
+			currentSort.direction = 'desc';
+		}
+
+
+		fetchRankingData().then(data => {
+			renderTable(data);
+		});
+	}
+
+
+	// Agregar event listeners para el ordenamiento
+	document.querySelectorAll('th[data-sort]').forEach(th => {
+		th.addEventListener('click', () => {
+			const field = th.getAttribute('data-sort');
+			if (field) {
+				handleSort(field);
+			}
+		});
+	});
+
+
+	// Cargar datos iniciales
+	fetchRankingData().then(data => {
+		renderTable(data);
+	});
+</script>
+
+
+
+
+
+

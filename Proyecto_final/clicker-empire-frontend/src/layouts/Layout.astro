@@ -1,0 +1,52 @@
+---
+import Navbar from "@/components/Navbar.astro";
+import Footer from "@/components/Footer.astro";
+import "../styles/global.css";
+import "@/assets/scss/app.scss";
+
+const hideFooter = Astro.url.pathname === "/game";
+---
+
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.png" />
+        <meta name="generator" content={Astro.generator} />
+        <!-- <meta name="csrf-token" content="{{ csrf_token() }}"> -->
+        <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+        <title>Clicker Empire</title>
+    </head>
+    <body class="min-h-screen bg-gray-900 text-white flex flex-col">
+        <Navbar/>
+        <main class="flex-grow w-full max-w-[1920px] mx-auto">
+            <slot />
+        </main>
+        { !hideFooter && <Footer /> }
+        <script>
+            if (typeof window !== 'undefined') {
+                const SESSION_TIMEOUT = 7200000; // 120 minutos en milisegundos
+
+                function checkAuthStatus() {
+                    const userSession = localStorage.getItem('user_session');
+                    if (!userSession) return;
+
+                    const session = JSON.parse(userSession);
+                    const currentTime = new Date().getTime();
+                    const sessionAge = currentTime - session.timestamp;
+
+                    if (sessionAge > SESSION_TIMEOUT) {
+                        localStorage.removeItem('user_session');
+                    }
+                }
+
+                // Verificar el estado de autenticación al cargar la página
+                checkAuthStatus();
+
+                // Configurar intervalo para verificar autenticación cada 5 minutos
+                setInterval(checkAuthStatus, 300000);
+            }
+        </script>
+    </body>
+</html>

@@ -1,0 +1,38 @@
+services:
+  # Configuración del servicio web
+  - type: web
+    name: laravel-app
+    env: docker
+    dockerfilePath: clicker-empire-backend/Dockerfile
+    plan: free
+    rootDir: clicker-empire-backend
+    envVars:
+      # Variables de entorno de la aplicación
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: APP_KEY
+        generateValue: true
+      - key: APP_URL
+        value: https://clickerempire.onrender.com
+      # Variables de entorno de la base de datos
+      - key: DB_CONNECTION
+        value: mysql
+      - key: DB_HOST
+        value: 
+      - key: DB_PORT
+        value: 3306
+      - key: DB_DATABASE
+        value: 
+      - key: DB_USERNAME
+        value: 
+      - key: DB_PASSWORD
+        value: 
+
+# Configuración de la base de datos
+databases:
+  - name: clicker-empire-db
+    databaseName: clickerempiredb
+    user: clickerempire
+    plan: free

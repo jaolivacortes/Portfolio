@@ -1,0 +1,230 @@
+---
+import { Image } from "astro:assets";
+import Logo from "@assets/img/logo.png";
+import NavLink from "./ui/NavLink.astro";
+
+const currentPath = Astro.url.pathname;
+const isActive = (href: string) => currentPath === href;
+---
+
+<nav id="navbar" class="navbar">
+  <div class="navbar__container">
+    <div class="navbar__content">
+      <div class="navbar__logo-container">
+        <a href="/" class="navbar__logo-link">
+          <Image class="navbar__logo" src={Logo} alt="Logo" />
+        </a>
+      </div>
+
+      <!-- Menú Hamburguesa -->
+      <button id="hamburgerButton" class="navbar__hamburger" aria-label="Toggle menu">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+
+      <!-- Menú Móvil -->
+      <div id="mobileMenu" class="navbar__mobile-menu">
+        <div class="navbar__mobile-content">
+          <div id="mobileUsername" class="navbar__mobile-username"></div>
+          <div class="navbar__mobile-links">
+            <a href="/" class="navbar__mobile-link">Inicio</a>
+            <div id="mobileProfileLinks" class="navbar__mobile-profile-links">
+              <a href="/game" class="navbar__mobile-link">Clicker</a>
+              <a href="/ranking" class="navbar__mobile-link">Ranking</a>
+              <a href="/achievements" class="navbar__mobile-link">Logros</a>
+              <a href="/forum" class="navbar__mobile-link">Foro</a>
+              <a href="/profile" class="navbar__mobile-link">Perfil</a>
+              <button id="mobileLogout" class="navbar__mobile-link">Cerrar sesión</button>
+            </div>
+            <div id="mobileAuthLinks" class="navbar__mobile-auth-links">
+              <a href="/auth/login" class="navbar__mobile-link">Iniciar sesión</a>
+              <a href="/auth/register" class="navbar__mobile-link">Registrarse</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="navbar__nav">
+        <div class="navbar__links">
+          <NavLink href="/" active={isActive("/")}>Inicio</NavLink>
+          <div id="profileLink" class="navbar__profile-links">
+            <NavLink href="/game" active={isActive("/game")}>Clicker</NavLink>
+            <NavLink href="/ranking" active={isActive("/ranking")}>Ranking</NavLink>
+            <NavLink href="/achievements" active={isActive("/achievements")}>Logros</NavLink>
+            <NavLink href="/forum" active={isActive("/forum")}>Foro</NavLink>
+          </div>
+          <div id="authLinks" class="navbar__auth-links">
+            <div id="loginRegisterLinks" class="navbar__auth-buttons">
+              <NavLink href="/auth/login" active={isActive("/auth/login")}>Iniciar sesión</NavLink>
+              <NavLink href="/auth/register" active={isActive("/auth/register")}>Registrarse</NavLink>
+            </div>
+            <div id="userMenu" class="navbar__user-menu">
+              <button id="userMenuButton" class="navbar__user-button">
+                <span id="navbarUsername" class="navbar__username"></span>
+                <svg class="navbar__dropdown-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+              </button>
+              <div id="userMenuDropdown" class="navbar__dropdown">
+                <div class="navbar__dropdown-menu" role="menu" aria-orientation="vertical">
+                  <a href="/profile" class="navbar__dropdown-item" role="menuitem">Perfil</a>
+                  <button id="logoutButton" class="navbar__dropdown-item" role="menuitem">
+                    Cerrar sesión
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="navbar__spacer"></div>
+    </div>
+  </div>
+</nav>
+
+<!-- Modal de confirmación de cierre de sesión -->
+<div id="logoutModal" class="modal">
+    <div class="modal__content">
+        <div class="modal__header">
+            <h2 class="modal__title">Cerrar Sesión</h2>
+            <button type="button" id="closeLogoutModal" class="modal__close">&times;</button>
+        </div>
+        <div class="modal__body">
+            <p>¿Estás seguro de que quieres cerrar sesión?</p>
+        </div>
+        <div class="modal__footer">
+            <button type="button" id="cancelLogout" class="modal__button modal__button--secondary">Cancelar</button>
+            <button type="button" id="confirmLogout" class="modal__button modal__button--danger">Cerrar Sesión</button>
+        </div>
+    </div>
+</div>
+
+<script>
+  // Verificar el estado de autenticación al cargar la página
+  if (typeof window !== 'undefined') {
+    const navbar = document.getElementById('navbar');
+    const profileLink = document.getElementById('profileLink');
+    const loginRegisterLinks = document.getElementById('loginRegisterLinks');
+    const userMenu = document.getElementById('userMenu');
+    const navbarUsername = document.getElementById('navbarUsername');
+    const userMenuButton = document.getElementById('userMenuButton');
+    const userMenuDropdown = document.getElementById('userMenuDropdown');
+    const logoutButton = document.getElementById('logoutButton');
+    const logoutModal = document.getElementById('logoutModal');
+    const closeLogoutModal = document.getElementById('closeLogoutModal');
+    const cancelLogout = document.getElementById('cancelLogout');
+    const confirmLogout = document.getElementById('confirmLogout');
+    const hamburgerButton = document.getElementById('hamburgerButton');
+    const mobileMenu = document.getElementById('mobileMenu');
+    const mobileUsername = document.getElementById('mobileUsername');
+    const mobileLogout = document.getElementById('mobileLogout');
+    const mobileProfileLinks = document.getElementById('mobileProfileLinks');
+    const mobileAuthLinks = document.getElementById('mobileAuthLinks');
+
+    // Toggle menú móvil
+    hamburgerButton?.addEventListener('click', () => {
+      mobileMenu?.classList.toggle('navbar__mobile-menu--active');
+    });
+
+    // Cerrar menú al hacer clic fuera
+    document.addEventListener('click', (event) => {
+      if (hamburgerButton && mobileMenu && !hamburgerButton.contains(event.target as Node) && !mobileMenu.contains(event.target as Node)) {
+        mobileMenu.classList.remove('navbar__mobile-menu--active');
+      }
+    });
+
+    function updateNavbarVisibility() {
+      const userSession = localStorage.getItem('user_session');
+      const session = userSession ? JSON.parse(userSession) : null;
+
+      if (session?.auth) {
+        profileLink?.classList.add('navbar__profile-links--visible');
+        loginRegisterLinks?.classList.add('navbar__auth-buttons--hidden');
+        userMenu?.classList.add('navbar__user-menu--visible');
+        mobileProfileLinks?.classList.add('navbar__mobile-profile-links--visible');
+        mobileAuthLinks?.classList.add('navbar__mobile-auth-links--hidden');
+        if (navbarUsername && session.user?.player?.user_name) {
+          navbarUsername.textContent = session.user.player.user_name;
+          if (mobileUsername) {
+            mobileUsername.textContent = session.user.player.user_name;
+          }
+        }
+      } else {
+        profileLink?.classList.remove('navbar__profile-links--visible');
+        loginRegisterLinks?.classList.remove('navbar__auth-buttons--hidden');
+        userMenu?.classList.remove('navbar__user-menu--visible');
+        mobileProfileLinks?.classList.remove('navbar__mobile-profile-links--visible');
+        mobileAuthLinks?.classList.remove('navbar__mobile-auth-links--hidden');
+      }
+
+      // Mostrar el navbar una vez que hemos actualizado la visibilidad
+      navbar?.classList.add('navbar--visible');
+    }
+
+    // Manejar el menú desplegable
+    userMenuButton?.addEventListener('click', () => {
+      if (userMenuDropdown && navbar) {
+        const buttonRect = userMenuButton.getBoundingClientRect();
+        const navbarRect = navbar.getBoundingClientRect();
+
+        userMenuDropdown.style.top = `${navbarRect.bottom}px`;
+        userMenuDropdown.style.left = `${buttonRect.left}px`;
+        userMenuDropdown.classList.toggle('navbar__dropdown--visible');
+      }
+    });
+
+    // Manejar el modal de cierre de sesión
+    const showLogoutModal = () => {
+      if (logoutModal) {
+        logoutModal.style.display = 'flex';
+        userMenuDropdown?.classList.remove('navbar__dropdown--visible');
+        mobileMenu?.classList.remove('navbar__mobile-menu--active');
+      }
+    };
+
+    logoutButton?.addEventListener('click', showLogoutModal);
+    mobileLogout?.addEventListener('click', showLogoutModal);
+
+    closeLogoutModal?.addEventListener('click', () => {
+      if (logoutModal) {
+        logoutModal.style.display = 'none';
+      }
+    });
+
+    cancelLogout?.addEventListener('click', () => {
+      if (logoutModal) {
+        logoutModal.style.display = 'none';
+      }
+    });
+
+    confirmLogout?.addEventListener('click', () => {
+      window.location.href = '/auth/logout';
+    });
+
+    // Cerrar el menú al hacer clic fuera
+    document.addEventListener('click', (event) => {
+      if (userMenuButton && userMenuDropdown && !userMenuButton.contains(event.target as Node) && !userMenuDropdown.contains(event.target as Node)) {
+        userMenuDropdown.classList.remove('navbar__dropdown--visible');
+      }
+    });
+
+    // Verificar si la sesión ha expirado
+    const userSession = localStorage.getItem('user_session');
+    if (userSession) {
+      const session = JSON.parse(userSession);
+      const currentTime = new Date().getTime();
+      const sessionAge = currentTime - session.timestamp;
+      const sessionTimeout = 7200000; // 120 minutos en milisegundos
+
+      if (sessionAge > sessionTimeout) {
+        localStorage.removeItem('user_session');
+      }
+    }
+
+    // Actualizar la visibilidad del navbar
+    updateNavbarVisibility();
+  }
+</script>
