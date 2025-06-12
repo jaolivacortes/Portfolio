@@ -2,6 +2,8 @@
 
 Juego de estrategia incremental desarrollado como proyecto final para el ciclo superior de Desarrollo de Aplicaciones Web.
 
+<p><img src="./Video_demostracion.gif"></p>
+
 ## Características
 
 - 🎮 Juego de estrategia incremental con progreso persistente
