@@ -34,7 +34,7 @@ Juego de estrategia incremental desarrollado como proyecto final para el ciclo s
 
 ### 1. Clonar el repositorio
 ```bash
-git clone https://github.com/jaolivacortes/Portfolio/Proyecto_final.git
+git clone https://github.com/jaolivacortes/Portfolio/tree/main/Proyecto_final
 cd Proyecto_final
 ```
 
@@ -60,8 +60,8 @@ DB_USERNAME=root
 DB_PASSWORD=root
 ```
 3. Importar los scripts SQL:
-   - Descargar el script de creación de la base de datos desde [aquí](https://github.com/jaolivacortes/Portfolio/Proyecto_final/blob/main/BD/ClickerEmpireDB.sql)
-   - Descargar el script de inserción de datos desde [aquí](https://github.com/jaolivacortes/Portfolio/Proyecto_final/blob/main/BD/ClickerEmpireDBInserts.sql)
+   - Descargar el script de creación de la base de datos desde [aquí](https://github.com/jaolivacortes/Portfolio/blob/main/Proyecto_final/BD/ClickerEmpireDB.sql)
+   - Descargar el script de inserción de datos desde [aquí](https://github.com/jaolivacortes/Portfolio/blob/main/Proyecto_final/BD/ClickerEmpireDBInserts.sql)
    - Ejecutar primero el script de creación de la base de datos
    - Ejecutar después el script de inserción de datos
    - Ambos scripts deben ejecutarse en tu gestor de base de datos local (MySQL Workbench, phpMyAdmin, etc.)
@@ -159,7 +159,7 @@ git add .
 git commit -m "Initial commit"
 
 # Añadir el repositorio remoto (reemplaza la URL con tu repositorio)
-git remote add origin https://github.com/tu-usuario/Proyecto_final.git
+git remote add origin https://github.com/tu-usuario/Portfolio/Proyecto_final.git
 
 # Subir los cambios
 git push -u origin main
@@ -229,7 +229,7 @@ Proyecto_final/
 ## Enlaces
 
 - [Aplicación en producción](https://clickerempire.onrender.com/)
-- [Repositorio GitHub](https://github.com/jaolivacortes/Portfolio/Proyecto_final)
+- [Repositorio GitHub](https://github.com/jaolivacortes/Portfolio/tree/main/Proyecto_final)
 
 ## Solución de problemas comunes
 
