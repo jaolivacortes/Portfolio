@@ -7,7 +7,7 @@
 - **Autor:** José Antonio Oliva Cortés
 - **Tutor:** Israel Caldito Carrasco
 - **Fecha de presentación:** 06/2025
-- **Repositorio:** [GitHub - Clicker Empire](https://github.com/jaolivacortes/Portfolio/Proyecto_final)
+- **Repositorio:** [GitHub - Clicker Empire](https://github.com/jaolivacortes/Portfolio/tree/main/Proyecto_final)
 - **Logotipo del proyecto:**
   <p align="center">
     <img src="clicker-empire-backend/public/_astro/logo.Csvx4ZJd_Zf88Qy.webp" alt="Clicker Empire Logo">
@@ -165,11 +165,11 @@ El proyecto integra múltiples tecnologías y conceptos aprendidos durante el ci
 ## 8. Diseño del proyecto
 
 ### 8.1 Diseño de la base de datos
-- [Diagrama E/R](https://github.com/jaolivacortes/Portfolio/Proyecto_final/blob/main/BD/ClickerEmpire%20-%20EER%20Diagram.pdf)
-- [Modelo Relacional](https://github.com/jaolivacortes/Portfolio/Proyecto_final/blob/main/BD/ClickerEmpire%20-%20Modelo%20e_r.drawio.pdf)
+- [Diagrama E/R](https://github.com/jaolivacortes/Portfolio/blob/main/Proyecto_final/BD/ClickerEmpire%20-%20EER%20Diagram.pdf)
+- [Modelo Relacional](https://github.com/jaolivacortes/Portfolio/blob/main/Proyecto_final/BD/ClickerEmpire%20-%20Modelo%20e_r.drawio.pdf)
 - Script de carga inicial
-  - [Creación BD](https://github.com/jaolivacortes/Portfolio/Proyecto_final/blob/main/BD/ClickerEmpireDB.sql)
-  - [Insertar scripts en BD](https://github.com/jaolivacortes/Portfolio/Proyecto_final/blob/main/BD/ClickerEmpireDBInserts.sql)
+  - [Creación BD](https://github.com/jaolivacortes/Portfolio/blob/main/Proyecto_final/BD/ClickerEmpireDB.sql)
+  - [Insertar scripts en BD](https://github.com/jaolivacortes/Portfolio/blob/main/Proyecto_final/BD/ClickerEmpireDBInserts.sql)
 
 ### 8.2 Diseño de la interfaz de usuario
 El diseño se basó en la experiencia de usuario de aplicaciones similares, optimizando la navegación y la experiencia de juego.
@@ -246,7 +246,7 @@ El diseño se basó en la experiencia de usuario de aplicaciones similares, opti
   - Redirecciones
 
 ## 11. Manual de usuario
-Para consultar el manual de usuario completo, visita el [README.md](https://github.com/jaolivacortes/Portfolio/Proyecto_final/blob/main/README.md) del proyecto, donde encontrarás:
+Para consultar el manual de usuario completo, visita el [README.md](https://github.com/jaolivacortes/Portfolio/blob/main/Proyecto_final/README.md) del proyecto, donde encontrarás:
 - Instrucciones detalladas de instalación
 - Configuración del entorno
 - Guía de despliegue
@@ -255,7 +255,7 @@ Para consultar el manual de usuario completo, visita el [README.md](https://gith
 
 ### Enlaces relevantes
 - [Juego en producción](https://clickerempire.onrender.com/)
-- [Repositorio GitHub](https://github.com/jaolivacortes/Portfolio/Proyecto_final)
+- [Repositorio GitHub](https://github.com/jaolivacortes/Portfolio/tree/main/Proyecto_final)
 
 ## 12. Conclusiones y aspectos a mejorar
 
